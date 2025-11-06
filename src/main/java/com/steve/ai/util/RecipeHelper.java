@@ -6,12 +6,13 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 import java.util.Map;
 
+// TODO: Will be implemented later - recipe lookup and crafting support
+// Required for CraftItemAction to work properly
+// Will integrate with Minecraft's recipe system to:
+// - Check if recipes are available
+// - Determine required ingredients
+// - Check if crafting table is needed
 public class RecipeHelper {
-    
-    // This will need to:
-    // - Check if recipes are available
-    // - Determine required ingredients
-    // - Check if crafting table is needed
     
     public static boolean hasRecipe(Item item) {
         return false;

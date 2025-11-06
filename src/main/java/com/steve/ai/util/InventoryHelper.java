@@ -4,11 +4,13 @@ import com.steve.ai.entity.SteveEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+// TODO: Will be implemented later - inventory management for Steve entities
+// Required for crafting, trading, and resource management
+// Will provide methods to:
+// - Add/remove items from Steve's inventory
+// - Check if Steve has required items
+// - Manage inventory slots
 public class InventoryHelper {
-    
-    // This will need to:
-    // - Provide methods to add/remove items
-    // - Check if Steve has required items
     
     public static boolean hasItem(SteveEntity steve, Item item, int count) {
         return false;
