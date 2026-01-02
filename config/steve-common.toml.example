@@ -1,3 +1,7 @@
+[ai]
+    # AI provider: groq, openai, gemini, anthropic
+    provider = "groq"
+
 [openai]
     # Your OpenAI API key
     # Get your API key from: https://platform.openai.com/api-keys
@@ -12,6 +16,17 @@
     # Temperature (0.0-2.0, lower is more deterministic)
     temperature = 0.7
 
+[anthropic]
+    # Your Anthropic API key
+    # Get your API key from: https://console.anthropic.com/
+    apiKey = "your-anthropic-api-key-here"
+
+    # Anthropic model to use
+    model = "claude-sonnet-4-20250514"
+
+    # Maximum tokens per API request
+    maxTokens = 1024
+
 [behavior]
     # Ticks between action checks (20 ticks = 1 second)
     actionTickDelay = 20
@@ -21,4 +36,3 @@
     
     # Maximum number of Steves that can be active simultaneously
     maxActiveSteves = 10
-

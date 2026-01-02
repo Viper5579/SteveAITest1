@@ -12,11 +12,13 @@ public class TaskPlanner {
     private final OpenAIClient openAIClient;
     private final GeminiClient geminiClient;
     private final GroqClient groqClient;
+    private final AnthropicClient anthropicClient;
 
     public TaskPlanner() {
         this.openAIClient = new OpenAIClient();
         this.geminiClient = new GeminiClient();
         this.groqClient = new GroqClient();
+        this.anthropicClient = new AnthropicClient();
     }
 
     public ResponseParser.ParsedResponse planTasks(SteveEntity steve, String command) {
@@ -33,16 +35,28 @@ public class TaskPlanner {
             if (response == null) {
                 SteveMod.LOGGER.error("Failed to get AI response for command: {}", command);
                 return null;
-            }            ResponseParser.ParsedResponse parsedResponse = ResponseParser.parseAIResponse(response);
+            }
+
+            ResponseParser.ParsedResponse parsedResponse = ResponseParser.parseAIResponse(response);
             
             if (parsedResponse == null) {
                 SteveMod.LOGGER.error("Failed to parse AI response");
                 return null;
             }
             
-            SteveMod.LOGGER.info("Plan: {} ({} tasks)", parsedResponse.getPlan(), parsedResponse.getTasks().size());
-            
-            return parsedResponse;
+            List<Task> validatedTasks = validateAndFilterTasks(parsedResponse.getTasks());
+            if (validatedTasks.size() != parsedResponse.getTasks().size()) {
+                SteveMod.LOGGER.warn("Filtered invalid tasks ({} -> {})",
+                    parsedResponse.getTasks().size(), validatedTasks.size());
+            }
+
+            SteveMod.LOGGER.info("Plan: {} ({} tasks)", parsedResponse.getPlan(), validatedTasks.size());
+
+            return new ResponseParser.ParsedResponse(
+                parsedResponse.getReasoning(),
+                parsedResponse.getPlan(),
+                validatedTasks
+            );
             
         } catch (Exception e) {
             SteveMod.LOGGER.error("Error planning tasks", e);
@@ -55,6 +69,7 @@ public class TaskPlanner {
             case "groq" -> groqClient.sendRequest(systemPrompt, userPrompt);
             case "gemini" -> geminiClient.sendRequest(systemPrompt, userPrompt);
             case "openai" -> openAIClient.sendRequest(systemPrompt, userPrompt);
+            case "anthropic" -> anthropicClient.sendRequest(systemPrompt, userPrompt);
             default -> {
                 SteveMod.LOGGER.warn("Unknown AI provider '{}', using Groq", provider);
                 yield groqClient.sendRequest(systemPrompt, userPrompt);
@@ -77,10 +92,10 @@ public class TaskPlanner {
             case "mine" -> task.hasParameters("block", "quantity");
             case "place" -> task.hasParameters("block", "x", "y", "z");
             case "craft" -> task.hasParameters("item", "quantity");
-            case "attack" -> task.hasParameters("target");
+            case "attack" -> isValidAttackTask(task);
             case "follow" -> task.hasParameters("player");
             case "gather" -> task.hasParameters("resource", "quantity");
-            case "build" -> task.hasParameters("structure", "blocks", "dimensions");
+            case "build" -> isValidBuildTask(task);
             default -> {
                 SteveMod.LOGGER.warn("Unknown action type: {}", action);
                 yield false;
@@ -93,5 +108,40 @@ public class TaskPlanner {
             .filter(this::validateTask)
             .toList();
     }
-}
 
+    private boolean isValidBuildTask(Task task) {
+        if (!task.hasParameters("structure", "blocks", "dimensions")) {
+            return false;
+        }
+
+        Object structure = task.getParameters().get("structure");
+        if (structure instanceof String structureName) {
+            if (AIReferenceData.isValidStructureName(structureName)) {
+                return true;
+            }
+            SteveMod.LOGGER.warn("Unknown structure '{}' (available: {})",
+                structureName, AIReferenceData.getAllStructureOptions());
+            return false;
+        }
+
+        return false;
+    }
+
+    private boolean isValidAttackTask(Task task) {
+        if (!task.hasParameters("target")) {
+            return false;
+        }
+
+        Object target = task.getParameters().get("target");
+        if (target instanceof String targetName) {
+            if (AIReferenceData.isValidAttackTarget(targetName)) {
+                return true;
+            }
+            SteveMod.LOGGER.warn("Unknown attack target '{}' (allowed: {})",
+                targetName, AIReferenceData.getValidAttackTargets());
+            return false;
+        }
+
+        return false;
+    }
+}

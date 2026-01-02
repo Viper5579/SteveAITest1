@@ -7,6 +7,9 @@ public class SteveConfig {
     public static final ForgeConfigSpec.ConfigValue<String> AI_PROVIDER;
     public static final ForgeConfigSpec.ConfigValue<String> OPENAI_API_KEY;
     public static final ForgeConfigSpec.ConfigValue<String> OPENAI_MODEL;
+    public static final ForgeConfigSpec.ConfigValue<String> ANTHROPIC_API_KEY;
+    public static final ForgeConfigSpec.ConfigValue<String> ANTHROPIC_MODEL;
+    public static final ForgeConfigSpec.IntValue ANTHROPIC_MAX_TOKENS;
     public static final ForgeConfigSpec.IntValue MAX_TOKENS;
     public static final ForgeConfigSpec.DoubleValue TEMPERATURE;
     public static final ForgeConfigSpec.IntValue ACTION_TICK_DELAY;
@@ -19,7 +22,7 @@ public class SteveConfig {
         builder.comment("AI API Configuration").push("ai");
         
         AI_PROVIDER = builder
-            .comment("AI provider to use: 'groq' (FASTEST, FREE), 'openai', or 'gemini'")
+            .comment("AI provider to use: 'groq' (FASTEST, FREE), 'openai', 'gemini', or 'anthropic'")
             .define("provider", "groq");
         
         builder.pop();
@@ -44,6 +47,22 @@ public class SteveConfig {
         
         builder.pop();
 
+        builder.comment("Anthropic API Configuration").push("anthropic");
+
+        ANTHROPIC_API_KEY = builder
+            .comment("Your Anthropic API key (required)")
+            .define("apiKey", "");
+
+        ANTHROPIC_MODEL = builder
+            .comment("Anthropic model to use (claude-sonnet-4-20250514, claude-opus-4-20250514)")
+            .define("model", "claude-sonnet-4-20250514");
+
+        ANTHROPIC_MAX_TOKENS = builder
+            .comment("Maximum tokens per Anthropic API request")
+            .defineInRange("maxTokens", 1024, 100, 65536);
+
+        builder.pop();
+
         builder.comment("Steve Behavior Configuration").push("behavior");
         
         ACTION_TICK_DELAY = builder
@@ -63,4 +82,3 @@ public class SteveConfig {
         SPEC = builder.build();
     }
 }
-
